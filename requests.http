@@ -1,0 +1,65 @@
+### Customer-Service : all customers
+GET http://localhost:8081/customers
+
+### Customer-Service : one customer
+GET http://localhost:8081/customers/1
+
+### Customer-Service : search
+GET http://localhost:8081/customers/search?keyword=lin
+
+### Customer-Service : new customer
+POST http://localhost:8081/customers
+Content-Type: application/json
+
+{
+  "firstName": "Omar",
+  "lastName": "Bennani",
+  "email": "omar@gmail.com"
+}
+
+### EBank-Service : all accounts (with customer fetched through OpenFeign)
+GET http://localhost:8082/accounts
+
+### EBank-Service : accounts of a customer
+GET http://localhost:8082/accounts/customer/1
+
+### EBank-Service : new account
+POST http://localhost:8082/accounts
+Content-Type: application/json
+
+{
+  "balance": 5000,
+  "currency": "MAD",
+  "type": "CURRENT_ACCOUNT",
+  "customerId": 2
+}
+
+### EBank-Service : debit (replace {{accountId}})
+POST http://localhost:8082/accounts/{{accountId}}/debit
+Content-Type: application/json
+
+{
+  "amount": 200,
+  "description": "Retrait GAB"
+}
+
+### EBank-Service : credit
+POST http://localhost:8082/accounts/{{accountId}}/credit
+Content-Type: application/json
+
+{
+  "amount": 1500,
+  "description": "Versement"
+}
+
+### EBank-Service : operations of an account
+GET http://localhost:8082/accounts/{{accountId}}/operations
+
+### Gateway : customers
+GET http://localhost:8888/customer-service/customers
+
+### Gateway : accounts
+GET http://localhost:8888/ebank-service/accounts
+
+### Circuit breaker state
+GET http://localhost:8082/actuator/circuitbreakers

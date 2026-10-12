@@ -37,7 +37,9 @@ public class BankAccountRestController {
         List<BankAccount> accounts = bankAccountService.accounts();
         Map<Long, Customer> customers = customerRestClient.allCustomers().stream()
                 .collect(Collectors.toMap(Customer::getId, Function.identity()));
-        accounts.forEach(account -> account.setCustomer(customers.get(account.getCustomerId())));
+        accounts.forEach(account -> account.setCustomer(customers.containsKey(account.getCustomerId())
+                ? customers.get(account.getCustomerId())
+                : customerRestClient.findCustomerById(account.getCustomerId())));
         return accounts;
     }
 
