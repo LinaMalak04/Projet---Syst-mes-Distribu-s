@@ -1,10 +1,12 @@
 package org.example.ebankservice.web;
 
+import org.example.ebankservice.clients.CustomerRestClient;
 import org.example.ebankservice.dtos.BankAccountRequest;
 import org.example.ebankservice.dtos.OperationRequest;
 import org.example.ebankservice.dtos.TransferRequest;
 import org.example.ebankservice.entities.AccountOperation;
 import org.example.ebankservice.entities.BankAccount;
+import org.example.ebankservice.model.Customer;
 import org.example.ebankservice.services.BankAccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,28 +18,42 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 public class BankAccountRestController {
     private final BankAccountService bankAccountService;
+    private final CustomerRestClient customerRestClient;
 
-    public BankAccountRestController(BankAccountService bankAccountService) {
+    public BankAccountRestController(BankAccountService bankAccountService, CustomerRestClient customerRestClient) {
         this.bankAccountService = bankAccountService;
+        this.customerRestClient = customerRestClient;
     }
 
     @GetMapping("/accounts")
     public List<BankAccount> accounts() {
-        return bankAccountService.accounts();
+        List<BankAccount> accounts = bankAccountService.accounts();
+        Map<Long, Customer> customers = customerRestClient.allCustomers().stream()
+                .collect(Collectors.toMap(Customer::getId, Function.identity()));
+        accounts.forEach(account -> account.setCustomer(customers.get(account.getCustomerId())));
+        return accounts;
     }
 
     @GetMapping("/accounts/{accountId}")
     public BankAccount accountById(@PathVariable String accountId) {
-        return bankAccountService.accountById(accountId);
+        BankAccount account = bankAccountService.accountById(accountId);
+        account.setCustomer(customerRestClient.findCustomerById(account.getCustomerId()));
+        return account;
     }
 
     @GetMapping("/accounts/customer/{customerId}")
     public List<BankAccount> accountsByCustomer(@PathVariable Long customerId) {
-        return bankAccountService.accountsByCustomer(customerId);
+        Customer customer = customerRestClient.findCustomerById(customerId);
+        List<BankAccount> accounts = bankAccountService.accountsByCustomer(customerId);
+        accounts.forEach(account -> account.setCustomer(customer));
+        return accounts;
     }
 
     @PostMapping("/accounts")
