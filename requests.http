@@ -63,3 +63,19 @@ GET http://localhost:8888/ebank-service/accounts
 
 ### Circuit breaker state
 GET http://localhost:8082/actuator/circuitbreakers
+
+### MCP : initialize a session with the MCP server of ebank-service (returns its name and capabilities)
+POST http://localhost:8082/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "intellij", "version": "1.0"}}}
+
+### Chatbot : question (the agent calls the MCP tools)
+GET http://localhost:8087/chat?query=Quels sont les comptes de Lina ?&conversationId=test
+
+### Chatbot : follow-up question (same conversation, uses the memory)
+GET http://localhost:8087/chat?query=Et quelles sont les opérations du compte courant ?&conversationId=test
+
+### Chatbot : through the gateway
+GET http://localhost:8888/chatbot-service/chat?query=Liste tous les clients
